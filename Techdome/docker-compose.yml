@@ -6,6 +6,8 @@ services:
       context: ./Techdome-frontend
     ports:
       - "3000:3000"
+    networks:
+      - techdome_network
     depends_on:
       - backend
 
@@ -14,7 +16,10 @@ services:
       context: ./Techdome-backend
     ports:
       - "5000:5000"
+    networks:
+      - techdome_network
     environment:
+      - PORT=5000
       - DB=mongodb://mongo:27017/mydb  # MongoDB connection string
     depends_on:
       - mongo
@@ -22,9 +27,16 @@ services:
   mongo:
     image: mongo:latest
     ports:
-      - "27017:27017"
+      - "27017:27017"     
+    networks:
+      - techdome_network
     volumes:
       - mongo_data:/data/db
 
+networks:
+  techdome_network:
+    driver: bridge 
+
 volumes:
   mongo_data:
+    driver: local  # Persist MongoDB data locally
