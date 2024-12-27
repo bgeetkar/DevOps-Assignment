@@ -71,7 +71,7 @@ jobs:
           sudo apt-get update && sudo apt-get install ngrok
       
           # Authenticate ngrok
-          ngrok config add-authtoken 26bDGGPyD3XWVtyzK3dfK401oIq_74Wi1m84A7rv9bP5YnihG
+          ngrok config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
       
           # Start ngrok tunnel for Frontend
           nohup ngrok http $FRONTEND_PORT > frontend.log &
