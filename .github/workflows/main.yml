@@ -31,11 +31,14 @@ jobs:
 
       # Step 4: Build the application (Optional for backend)
       - name: Build Application
-        run: npm run build # Skip this step if no build script is defined in package.json
+        run: |
+          cd Techdome-backend
+          npm run build # Skip this step if no build script is defined in package.json
 
       # Step 5: Run the application in the background
       - name: Start the application
         run: |
+          cd Techdome-backend
           nohup npm start & # Starts the application in the background
           sleep 10 # Waits for the server to start
 
