@@ -22,7 +22,7 @@ jobs:
       - name: Start Docker Compose services
         run: |
            cd Techdome
-           docker-compose up -d
+           docker compose up -d
 
       - name: Check running containers
         run: docker ps
