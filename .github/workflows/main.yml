@@ -23,7 +23,7 @@ jobs:
         run: docker compose up -d  # Use 'docker compose' instead of 'docker-compose'
 
       - name: Check running containers
-        run: docker ps
+        run: docker ps -a
 
       # Step 4: Get all container names and store them in GitHub environment variables
       - name: Export Container Names to ENV
@@ -63,16 +63,28 @@ jobs:
           echo "Backend URL: http://localhost:$BACKEND_PORT"
           echo "Database URL: mongodb://localhost:$DB_PORT"
 
-      # Step 6: Save URLs to a file
-      - name: Save URLs to File
+      - name: Expose Service using ngrok
         run: |
-          echo "Frontend: http://localhost:$FRONTEND_PORT" > url.txt
-          echo "Backend: http://localhost:$BACKEND_PORT" >> url.txt
-          echo "Database: mongodb://localhost:$DB_PORT" >> url.txt
-
-      # Step 7: Upload URL file as an artifact
-      - name: Upload URLs Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: service-urls
-          path: url.txt
+          # Install ngrok
+          curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+          echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
+          sudo apt-get update && sudo apt-get install ngrok
+      
+          # Authenticate ngrok
+          ngrok config add-authtoken 26bDGGPyD3XWVtyzK3dfK401oIq_74Wi1m84A7rv9bP5YnihG
+      
+          # Start ngrok tunnel for Frontend
+          nohup ngrok http $FRONTEND_PORT > frontend.log &
+          sleep 5  # Give ngrok time to establish the tunnel
+      
+          # Start ngrok tunnel for Backend
+          nohup ngrok http $BACKEND_PORT > backend.log &
+          sleep 5  # Give ngrok time to establish the tunnel
+      
+          # Fetch the URLs from ngrok API
+          FRONTEND_URL=$(curl --silent http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url')
+          BACKEND_URL=$(curl --silent http://localhost:4040/api/tunnels | jq -r '.tunnels[1].public_url')
+      
+          # Output URLs
+          echo "Frontend URL: $FRONTEND_URL"
+          echo "Backend URL: $BACKEND_URL"
