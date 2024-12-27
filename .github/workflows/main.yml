@@ -1,0 +1,38 @@
+name: Docker Compose CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  run-docker-compose:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Start Docker Compose services
+        run: |
+           cd DevOps-Assignment/Techdome
+           docker-compose up -d
+
+      - name: Check running containers
+        run: docker ps
+
+      - name: Get container port mapping
+        run: |
+          # Replace 'service_name' with your container name in the docker-compose.yml
+          CONTAINER_PORT=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "80/tcp") 0).HostPort}}' service_name)
+          echo "Container Port: $CONTAINER_PORT"
+          echo "http://localhost:$CONTAINER_PORT" > url.txt
+
+      - name: Output the URL
+        run: cat url.txt
