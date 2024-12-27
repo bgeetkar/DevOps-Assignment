@@ -63,29 +63,27 @@ jobs:
           echo "Backend URL: http://localhost:$BACKEND_PORT"
           echo "Database URL: mongodb://localhost:$DB_PORT"
 
-          - name: Create ngrok config file
-            run: |
-              mkdir -p ~/.ngrok
-              echo "authtoken: ${{ secrets.NGROK_AUTH_TOKEN }}" > ~/.ngrok/ngrok.yml
-              echo "tunnels:" >> ~/.ngrok/ngrok.yml
-              echo "  frontend:" >> ~/.ngrok/ngrok.yml
-              echo "    addr: $FRONTEND_PORT" >> ~/.ngrok/ngrok.yml
-              echo "    proto: http" >> ~/.ngrok/ngrok.yml
-              echo "  backend:" >> ~/.ngrok/ngrok.yml
-              echo "    addr: $BACKEND_PORT" >> ~/.ngrok/ngrok.yml
-              cat ~/.ngrok/ngrok.yml
-
-
-    
-          - name: Expose Services with ngrok
-            run: |
-              ngrok start --config ~/.ngrok/ngrok.yml --all &
-              sleep 5  # Give ngrok time to establish the tunnels
-          
-              # Fetch the URLs from ngrok API
-              FRONTEND_URL=$(curl --silent http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url')
-              BACKEND_URL=$(curl --silent http://localhost:4040/api/tunnels | jq -r '.tunnels[1].public_url')
-          
-              # Output URLs
-              echo "Frontend URL: $FRONTEND_URL"
-              echo "Backend URL: $BACKEND_URL"
+      - name: Create ngrok config file
+        run: |
+          mkdir -p ~/.ngrok
+          echo "authtoken: ${{ secrets.NGROK_AUTH_TOKEN }}" > ~/.ngrok/ngrok.yml
+          echo "tunnels:" >> ~/.ngrok/ngrok.yml
+          echo "  frontend:" >> ~/.ngrok/ngrok.yml
+          echo "    addr: $FRONTEND_PORT" >> ~/.ngrok/ngrok.yml
+          echo "    proto: http" >> ~/.ngrok/ngrok.yml
+          echo "  backend:" >> ~/.ngrok/ngrok.yml
+          echo "    addr: $BACKEND_PORT" >> ~/.ngrok/ngrok.yml
+          cat ~/.ngrok/ngrok.yml
+ 
+      - name: Expose Services with ngrok
+        run: |
+          ngrok start --config ~/.ngrok/ngrok.yml --all &
+          sleep 5  # Give ngrok time to establish the tunnels
+      
+          # Fetch the URLs from ngrok API
+          FRONTEND_URL=$(curl --silent http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url')
+          BACKEND_URL=$(curl --silent http://localhost:4040/api/tunnels | jq -r '.tunnels[1].public_url')
+      
+          # Output URLs
+          echo "Frontend URL: $FRONTEND_URL"
+          echo "Backend URL: $BACKEND_URL"
