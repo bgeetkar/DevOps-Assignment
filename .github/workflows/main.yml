@@ -25,43 +25,13 @@ jobs:
       - name: Check running containers
         run: docker ps -a
 
-      # Step 4: Get all container names and store them in GitHub environment variables
-      - name: Export Container Names to ENV
+      # Step 4: Install exposed ports dynamically
+      - name: instal ngrok-agent for networking and port exposing
         run: |
-          # Fetch container names and assign them to variables
-          FRONTEND_CONTAINER=$(docker ps --filter "name=frontend" --format "{{.Names}}")
-          BACKEND_CONTAINER=$(docker ps --filter "name=backend" --format "{{.Names}}")
-          DB_CONTAINER=$(docker ps --filter "name=mongo" --format "{{.Names}}")
-
-          # Save variables as environment variables
-          echo "FRONTEND_CONTAINER=$FRONTEND_CONTAINER" >> $GITHUB_ENV
-          echo "BACKEND_CONTAINER=$BACKEND_CONTAINER" >> $GITHUB_ENV
-          echo "DB_CONTAINER=$DB_CONTAINER" >> $GITHUB_ENV
-
-          # Debug output
-          echo "Frontend Container: $FRONTEND_CONTAINER"
-          echo "Backend Container: $BACKEND_CONTAINER"
-          echo "Database Container: $DB_CONTAINER"
-
-      # Step 5: Fetch exposed ports dynamically
-      - name: Fetch Exposed Ports
-        run: |
-          # Frontend Port
-          FRONTEND_PORT=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "3000/tcp") 0).HostPort}}' $FRONTEND_CONTAINER)
-          echo "FRONTEND_PORT=$FRONTEND_PORT" >> $GITHUB_ENV
-
-          # Backend Port
-          BACKEND_PORT=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "5000/tcp") 0).HostPort}}' $BACKEND_CONTAINER)
-          echo "BACKEND_PORT=$BACKEND_PORT" >> $GITHUB_ENV
-
-          # Database Port
-          DB_PORT=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "27017/tcp") 0).HostPort}}' $DB_CONTAINER)
-          echo "DB_PORT=$DB_PORT" >> $GITHUB_ENV
-
-          # Debug outputs
-          echo "Frontend URL: http://localhost:$FRONTEND_PORT"
-          echo "Backend URL: http://localhost:$BACKEND_PORT"
-          echo "Database URL: mongodb://localhost:$DB_PORT"
+          # Install ngrok
+          curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+          echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
+          sudo apt-get update && sudo apt-get install ngrok
 
       - name: Create ngrok config file
         run: |
